@@ -1,10 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表单测试页</title>
+    <style>
+        /* 这里加点简单的 CSS，让表单好看一点，不要那么丑 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-top: 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #00AD9F;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #008f83;
+        }
+    </style>
 </head>
 <body>
-    <h1>testttttttttttttttt</h1>
+
+    <div class="form-container">
+        <h2>联系我 / 留言测试</h2>
+        
+        <!-- 注意这里的 netlify 属性，绝对不能漏掉！ -->
+        <form name="contact" netlify>
+            
+            <label for="name">您的姓名：</label>
+            <input type="text" id="name" name="name" placeholder="请输入姓名" required>
+
+            <label for="contact">联系方式 (邮箱/微信)：</label>
+            <input type="text" id="contact" name="contact" placeholder="请输入联系方式" required>
+
+            <label for="message">您的问题 / 留言：</label>
+            <textarea id="message" name="message" rows="4" placeholder="请输入具体内容..." required></textarea>
+
+            <button type="submit">提 交</button>
+        </form>
+    </div>
+
 </body>
 </html>
