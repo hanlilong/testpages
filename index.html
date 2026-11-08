@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>表单测试页</title>
+    <title>Ajax 表单测试</title>
     <style>
-        /* 这里加点简单的 CSS，让表单好看一点，不要那么丑 */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f6f8;
@@ -23,50 +22,40 @@
             width: 100%;
             max-width: 400px;
         }
-        h2 {
-            color: #333;
-            text-align: center;
-            margin-top: 0;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
+        h2 { color: #333; text-align: center; margin-top: 0; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
         input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
+            width: 100%; padding: 10px; margin-bottom: 20px;
+            border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
             font-family: inherit;
         }
         button {
-            width: 100%;
-            padding: 12px;
-            background-color: #00AD9F;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
+            width: 100%; padding: 12px; background-color: #00AD9F; color: white;
+            border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold;
+            transition: background-color 0.3s;
         }
-        button:hover {
-            background-color: #008f83;
+        button:hover { background-color: #008f83; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        /* 提示信息的样式 */
+        #form-message {
+            margin-top: 15px; padding: 10px; border-radius: 4px;
+            text-align: center; display: none; font-weight: bold;
         }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 
     <div class="form-container">
-        <h2>联系我 / 留言测试</h2>
+        <h2>联系我 / 留言测试 (Ajax)</h2>
         
-        <!-- 注意这里的 netlify 属性，绝对不能漏掉！ -->
-        <form name="contact" netlify>
-            
+        <!-- 注意：这里的 action 路径是给原生提交用的，用 JS 提交时我们需要用到它 -->
+        <form id="my-form" name="contact" method="POST" data-netlify="true">
+            <!-- 这个隐藏 input 也是 Netlify 识别表单的关键 -->
+            <input type="hidden" name="form-name" value="contact" />
+
             <label for="name">您的姓名：</label>
             <input type="text" id="name" name="name" placeholder="请输入姓名" required>
 
@@ -76,9 +65,63 @@
             <label for="message">您的问题 / 留言：</label>
             <textarea id="message" name="message" rows="4" placeholder="请输入具体内容..." required></textarea>
 
-            <button type="submit">提 交</button>
+            <button type="submit" id="submit-btn">提 交</button>
         </form>
+
+        <!-- 用来显示提交状态的提示框 -->
+        <div id="form-message"></div>
     </div>
+
+    <script>
+        // 监听表单的提交事件
+        document.getElementById("my-form").addEventListener("submit", function (e) {
+            // 1. 阻止页面默认的刷新/跳转行为
+            e.preventDefault();
+
+            const form = e.target;
+            const button = document.getElementById("submit-btn");
+            const messageBox = document.getElementById("form-message");
+            
+            // 2. 改变按钮状态，防止用户重复点击
+            button.disabled = true;
+            button.innerText = "提交中...";
+            messageBox.style.display = "none";
+
+            // 3. 收集表单数据
+            const formData = new FormData(form);
+
+            // 4. 使用 Fetch API 发送 POST 请求给当前页面（Netlify 会拦截）
+            fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                // 将 FormData 转换为 URL 编码格式
+                body: new URLSearchParams(formData).toString(),
+            })
+            .then((response) => {
+                if (response.ok) {
+                    // 成功处理
+                    messageBox.className = "success";
+                    messageBox.innerText = "提交成功！感谢您的留言。";
+                    messageBox.style.display = "block";
+                    form.reset(); // 清空表单内容
+                } else {
+                    throw new Error("网络响应异常");
+                }
+            })
+            .catch((error) => {
+                // 失败处理
+                messageBox.className = "error";
+                messageBox.innerText = "提交失败，请稍后重试。";
+                messageBox.style.display = "block";
+                console.error(error);
+            })
+            .finally(() => {
+                // 无论成功失败，最后都恢复按钮状态
+                button.disabled = false;
+                button.innerText = "提 交";
+            });
+        });
+    </script>
 
 </body>
 </html>
