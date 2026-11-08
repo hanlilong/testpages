@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajax 表单测试</title>
+    <title>jQuery Ajax 表单测试</title>
     <style>
+        /* 样式和之前一样，没变 */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f6f8;
@@ -36,8 +37,6 @@
         }
         button:hover { background-color: #008f83; }
         button:disabled { background-color: #ccc; cursor: not-allowed; }
-        
-        /* 提示信息的样式 */
         #form-message {
             margin-top: 15px; padding: 10px; border-radius: 4px;
             text-align: center; display: none; font-weight: bold;
@@ -45,15 +44,17 @@
         .success { background-color: #d4edda; color: #155724; }
         .error { background-color: #f8d7da; color: #721c24; }
     </style>
+    
+    <!-- 1. 引入 jQuery 库 (这里用的是 CDN 加速链接) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 <body>
 
     <div class="form-container">
-        <h2>联系我 / 留言测试 (Ajax)</h2>
+        <h2>联系我 / 留言测试 (jQuery)</h2>
         
-        <!-- 注意：这里的 action 路径是给原生提交用的，用 JS 提交时我们需要用到它 -->
         <form id="my-form" name="contact" method="POST" data-netlify="true">
-            <!-- 这个隐藏 input 也是 Netlify 识别表单的关键 -->
+            <!-- 这个隐藏 input 是 Netlify 的必须项 -->
             <input type="hidden" name="form-name" value="contact" />
 
             <label for="name">您的姓名：</label>
@@ -68,58 +69,51 @@
             <button type="submit" id="submit-btn">提 交</button>
         </form>
 
-        <!-- 用来显示提交状态的提示框 -->
         <div id="form-message"></div>
     </div>
 
     <script>
-        // 监听表单的提交事件
-        document.getElementById("my-form").addEventListener("submit", function (e) {
-            // 1. 阻止页面默认的刷新/跳转行为
-            e.preventDefault();
-
-            const form = e.target;
-            const button = document.getElementById("submit-btn");
-            const messageBox = document.getElementById("form-message");
+        // 2. 使用 jQuery 的语法
+        $(document).ready(function() {
             
-            // 2. 改变按钮状态，防止用户重复点击
-            button.disabled = true;
-            button.innerText = "提交中...";
-            messageBox.style.display = "none";
+            $('#my-form').on('submit', function(e) {
+                // 阻止默认刷新
+                e.preventDefault();
 
-            // 3. 收集表单数据
-            const formData = new FormData(form);
+                const $btn = $('#submit-btn');
+                const $msg = $('#form-message');
+                // 获取表单数据的 jQuery 方法
+                const formData = $(this).serialize();
 
-            // 4. 使用 Fetch API 发送 POST 请求给当前页面（Netlify 会拦截）
-            fetch("/", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                // 将 FormData 转换为 URL 编码格式
-                body: new URLSearchParams(formData).toString(),
-            })
-            .then((response) => {
-                if (response.ok) {
-                    // 成功处理
-                    messageBox.className = "success";
-                    messageBox.innerText = "提交成功！感谢您的留言。";
-                    messageBox.style.display = "block";
-                    form.reset(); // 清空表单内容
-                } else {
-                    throw new Error("网络响应异常");
-                }
-            })
-            .catch((error) => {
-                // 失败处理
-                messageBox.className = "error";
-                messageBox.innerText = "提交失败，请稍后重试。";
-                messageBox.style.display = "block";
-                console.error(error);
-            })
-            .finally(() => {
-                // 无论成功失败，最后都恢复按钮状态
-                button.disabled = false;
-                button.innerText = "提 交";
+                // 按钮禁用，防止重复点击
+                $btn.prop('disabled', true).text('提交中...');
+                $msg.hide();
+
+                // 3. jQuery 的 Ajax 提交
+                $.ajax({
+                    url: "/", // 提交给当前路径，Netlify 会在后台拦截
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    data: formData,
+                    success: function(response) {
+                        // 提交成功
+                        $msg.removeClass('error').addClass('success').text('提交成功！感谢您的留言。').fadeIn();
+                        $('#my-form')[0].reset(); // 重置表单
+                    },
+                    error: function(xhr, status, error) {
+                        // 提交失败
+                        $msg.removeClass('success').addClass('error').text('提交失败，请稍后重试。').fadeIn();
+                        console.error(error);
+                    },
+                    complete: function() {
+                        // 无论成功失败，恢复按钮
+                        $btn.prop('disabled', false).text('提 交');
+                    }
+                });
             });
+            
         });
     </script>
 
